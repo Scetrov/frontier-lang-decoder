@@ -1,0 +1,47 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Decoder browser checks</title><body><pre id="report">RUNNING</pre><iframe src="../index.html" style="width:1200px;height:900px"></iframe><script type="module">
+const report = document.getElementById('report');
+const frame = document.querySelector('iframe');
+const checks = [];
+function check(name, actual, expected) { checks.push(`${actual === expected ? 'PASS' : 'FAIL'} ${name}: ${JSON.stringify(actual)}${actual === expected ? '' : ' expected ' + JSON.stringify(expected)}`); }
+let attempts = 0;
+const timer = setInterval(async () => {
+  const d = frame.contentDocument;
+  if (!d?.documentElement.dataset.ready) { if (++attempts > 200) { clearInterval(timer); report.textContent = 'FAIL app initialization timed out'; } return; }
+  clearInterval(timer);
+  try {
+    const $ = id => d.getElementById(id);
+    check('initialization', d.documentElement.dataset.ready, 'true');
+    check('default synthetic transcript', $('result').value, 'EVE FRONTIER\nSIGNAL 2048');
+    check('reference count', $('alphabet').children.length, 36);
+    const alphabet = 'ABCDEFGHIJKL\nMNOPQRSTUVWX\nYZ1234567890';
+    $('demoText').value = alphabet; $('demo').click();
+    check('full alphabet', $('result').value, alphabet);
+    $('invert').checked = true; $('demo').click();
+    check('inverted alphabet', $('result').value, alphabet);
+    $('binary').checked = true; $('binary').dispatchEvent(new Event('change'));
+    check('binary preview width', $('preview').width > 0, true);
+    const select = $('matches').querySelector('select'); select.value = 'Z'; select.dispatchEvent(new Event('change'));
+    check('manual correction', $('result').value[0], 'Z');
+    $('invert').checked = false;
+    for (const char of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890') {
+      $('demoText').value = char; $('demo').click(); check('isolated ' + char, $('result').value, char);
+    }
+    $('demoText').value = ''; $('demo').click(); check('blank', $('result').value, '');
+    $('demoText').value = '<script>'; $('demo').click(); check('unsupported demo input', $('status').textContent.includes('supports only'), true);
+    $('demoText').value = 'EVE FRONTIER\nSIGNAL 2048'; $('demo').click();
+    // Exercise the actual upload path with a resized, same-source raster.
+    const source = $('preview'), resized = document.createElement('canvas');
+    resized.width = Math.round(source.width * .75); resized.height = Math.round(source.height * .75);
+    const c = resized.getContext('2d'); c.drawImage(source, 0, 0, resized.width, resized.height);
+    const blob = await new Promise(resolve => resized.toBlob(resolve, 'image/png'));
+    const transfer = new DataTransfer(); transfer.items.add(new File([blob], 'resized-signal.png', { type: 'image/png' }));
+    $('upload').files = transfer.files; $('glyphHeight').value = 48;
+    $('upload').dispatchEvent(new Event('change'));
+    await new Promise(resolve => setTimeout(resolve, 800));
+    check('uploaded resized sample', $('result').value, 'EVE FRONTIER\nSIGNAL 2048');
+    check('upload filename', $('sourceLabel').textContent, 'resized-signal.png');
+    $('widthRatio').value = 0; $('decode').click(); check('invalid geometry', $('status').textContent.startsWith('Set glyph height'), true);
+  } catch (error) { checks.push('FAIL exception: ' + error.stack); }
+  report.textContent = checks.join('\n') + '\n' + (checks.some(x => x.startsWith('FAIL')) ? 'FAILED' : 'ALL PASSED');
+}, 50);
+</script></body></html>

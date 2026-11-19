@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Frontier / Glyph decoder PoC</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<header><a class="brand" href="./">F<span> / </span>FIELD SYSTEMS</a><span class="badge">EXPERIMENTAL · LOCAL ONLY</span></header>
+<main>
+  <div class="intro"><div><p class="eyebrow">EVE FRONTIER / LANGUAGE LAB</p><h1>Unknown symbols.<br><em>Readable signals.</em></h1><p class="lede">A glyph-substitution decoder, built from your reference chart.<br>Upload a text crop, inspect the matches, correct the uncertain.</p></div><div class="number">01<span>OPTICAL DECODER<br>PROOF OF CONCEPT</span></div></div>
+  <p class="notice">Designed for upright, square, evenly sized glyphs on a plain background—not arbitrary-scene OCR. No real-world samples validated yet. N and 9 are unconfirmed in the supplied chart.</p>
+  <div class="layout">
+    <section class="panel controls"><h2><span>01</span> Input signal</h2>
+      <label class="upload" for="upload"><strong>Open an image ↗</strong><span>PNG, JPEG or WebP · up to 12 MB<br>Processed only in this browser</span><input id="upload" type="file" accept="image/png,image/jpeg,image/webp"></label>
+      <p class="hint">Crop tightly to text first, or drag a rectangle on the preview. Click “Reset crop” to undo.</p>
+      <div class="row"><button id="resetCrop" type="button">Reset crop</button><button id="decode" class="primary" type="button" disabled>Decode ↗</button></div>
+      <h3>Recognition controls</h3>
+      <label>Ink polarity<select id="polarity"><option value="auto">Auto (image border)</option><option value="dark">Dark glyphs / light background</option><option value="light">Light glyphs / dark background</option></select></label>
+      <label>Threshold <output id="thresholdValue">150</output><input id="threshold" type="range" min="10" max="245" value="150"></label>
+      <label>Approx. glyph height (px)<input id="glyphHeight" type="number" min="8" max="800" value="64"></label>
+      <p class="hint">Used to join disconnected strokes into lines. Leave generous spacing between lines. Match this to glyph height in the processed preview.</p>
+      <label>Glyph width / height<input id="widthRatio" type="number" min="0.4" max="2" step="0.05" value="1"></label>
+      <label>Minimum match <output id="minScoreValue">72%</output><input id="minScore" type="range" min="40" max="98" value="72"></label>
+      <label class="check"><input id="binary" type="checkbox"> Show thresholded image</label>
+      <details open><summary>Synthetic test bench</summary><label>Generate a known signal<textarea id="demoText" rows="3" maxlength="160" spellcheck="false">EVE FRONTIER
+SIGNAL 2048</textarea></label><label class="check"><input id="invert" type="checkbox"> Light glyphs on dark</label><div class="row"><button id="demo" type="button" disabled>Generate demo</button><button id="download" type="button" disabled>Save PNG ↓</button></div><p class="hint">Demo uses the same chart as recognition. This checks the pipeline, not accuracy on unseen images. Supported: A–Z, 0–9, spaces and newlines.</p></details>
+    </section>
+    <div class="workspace">
+      <section class="panel preview"><div class="panel-heading"><h2><span>02</span> Visual inspection</h2><span id="dimensions" class="muted">NO SIGNAL</span></div><div class="canvas-wrap"><canvas id="preview" width="900" height="300" aria-label="Input image with recognized glyph boxes. Drag to crop."></canvas></div><div class="legend"><span><i></i> Template match</span><span><i class="warning"></i> Needs review / unconfirmed</span><span id="sourceLabel">Synthetic sample</span></div></section>
+      <section class="panel"><div class="panel-heading"><h2><span>03</span> Decoded transmission</h2><button id="copy" type="button">Copy text</button></div><p id="status" role="status" aria-live="polite">Loading reference templates…</p><textarea id="result" rows="4" placeholder="Decoded text appears here. You can edit it directly." aria-label="Decoded text" spellcheck="false"></textarea><div id="matches" class="matches"></div><p class="hint">Select a character to correct a match. Scores are shape similarities, not probabilities. “?” means weak or ambiguous. Editing a character rebuilds the transcript; direct text edits are separate.</p></section>
+      <details class="panel"><summary>Reference alphabet · 36 glyphs</summary><p class="hint">Extracted directly from <a href="image.png" target="_blank" rel="noopener">your supplied mapping</a>. Amber entries are not confirmed by the chart.</p><div id="alphabet" class="alphabet"></div></details>
+    </div>
+  </div>
+</main><footer>UNOFFICIAL FAN EXPERIMENT <span>NO UPLOADS · NO API KEYS · NO TELEMETRY</span></footer>
+<script type="module" src="app.js"></script>
+</body></html>
