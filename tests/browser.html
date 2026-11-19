@@ -40,6 +40,21 @@ const timer = setInterval(async () => {
     await new Promise(resolve => setTimeout(resolve, 800));
     check('uploaded resized sample', $('result').value, 'EVE FRONTIER\nSIGNAL 2048');
     check('upload filename', $('sourceLabel').textContent, 'resized-signal.png');
+    // Distinct sizes with only 11px between lines, matching the reported failure.
+    const mixed = document.createElement('canvas'); mixed.width = 500; mixed.height = 100;
+    const mc = mixed.getContext('2d'); mc.fillStyle = '#fff'; mc.fillRect(0, 0, mixed.width, mixed.height);
+    const alphabetImages = $('alphabet').querySelectorAll('canvas');
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+    for (const [text, y, width, height] of [['EVE FRONTIER', 20, 28, 27], ['SIGNAL 2048', 58, 14, 16]]) {
+      let x = 20;
+      for (const ch of text) { if (ch === ' ') { x += width; continue; } mc.drawImage(alphabetImages[letters.indexOf(ch)], x, y, width, height); x += width + Math.round(width / 4); }
+    }
+    const mixedBlob = await new Promise(resolve => mixed.toBlob(resolve, 'image/png'));
+    const mixedTransfer = new DataTransfer(); mixedTransfer.items.add(new File([mixedBlob], 'mixed-sizes.png', { type: 'image/png' }));
+    $('upload').files = mixedTransfer.files; $('upload').dispatchEvent(new Event('change'));
+    await new Promise(resolve => setTimeout(resolve, 800));
+    check('upload resets stale height to auto', $('glyphHeight').value, '0');
+    check('mixed-size close lines', $('result').value, 'EVE FRONTIER\nSIGNAL 2048');
     $('widthRatio').value = 0; $('decode').click(); check('invalid geometry', $('status').textContent.startsWith('Set glyph height'), true);
   } catch (error) { checks.push('FAIL exception: ' + error.stack); }
   report.textContent = checks.join('\n') + '\n' + (checks.some(x => x.startsWith('FAIL')) ? 'FAILED' : 'ALL PASSED');

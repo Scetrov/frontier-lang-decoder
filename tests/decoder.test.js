@@ -34,6 +34,31 @@ test('weak and ambiguous matches are unknown', () => {
   const result = decode(mask, [{ char: 'A', vector }, { char: 'B', vector }], { glyphHeight: 10 });
   assert.equal(transcript(result), '?');
 });
+test('auto mode separates nearby lines at different scales and respects non-square raster bounds', () => {
+  const mask = { width: 110, height: 85, data: new Uint8Array(110 * 85) };
+  const cells = [
+    { x: 4, y: 10, width: 28, height: 27 },
+    { x: 40, y: 10, width: 28, height: 27 },
+    { x: 10, y: 48, width: 14, height: 16 },
+    { x: 30, y: 48, width: 14, height: 16 },
+  ];
+  for (const b of cells) for (let y = b.y; y < b.y + b.height; y++) for (let x = b.x; x < b.x + b.width; x++) {
+    if (x < b.x + 3 || y < b.y + 3 || y >= b.y + b.height - 3) mask.data[y * mask.width + x] = 1;
+  }
+  const vector = normalize(mask, cells[0]);
+  const result = decode(mask, [{ char: 'C', vector }], { minScore: .4 });
+  assert.equal(result.length, 2);
+  assert.deepEqual(result.map(line => line.map(g => g.box)), [cells.slice(0, 2), cells.slice(2)]);
+  assert.equal(transcript(result), 'CC\nCC');
+});
+
+test('manual height still joins detached glyph bands', () => {
+  const mask = { width: 40, height: 40, data: new Uint8Array(1600) };
+  for (const y of [4, 28]) for (const x of [4, 28]) for (let yy = y; yy < y + 6; yy++) for (let xx = x; xx < x + 6; xx++) mask.data[yy * 40 + xx] = 1;
+  const vector = normalize(mask, bounds(mask));
+  assert.equal(transcript(decode(mask, [{ char: 'O', vector }], { glyphHeight: 30 })), 'O');
+});
+
 test('transcript preserves lines, spaces and corrections', () => {
   assert.equal(transcript([[{ char: 'A' }, { char: '?', spaceBefore: true }], [{ char: '9' }]]), 'A ?\n9');
 });

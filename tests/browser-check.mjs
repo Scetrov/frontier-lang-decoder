@@ -1,6 +1,6 @@
 // Optional real-browser checks. Start npm start first; requires Chromium on PATH.
 import { spawn } from 'node:child_process';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import assert from 'node:assert/strict';
@@ -27,11 +27,37 @@ try {
   assert.ok(report.includes('ALL PASSED'), 'Browser checks failed or timed out');
   await send('Page.navigate', { url: 'http://127.0.0.1:8000/' });
   for (let i = 0; i < 100; i++) { if (await evaluate('document.documentElement.dataset.ready === "true"')) break; await wait(100); }
+  const theme = await evaluate(`(async () => {
+    await document.fonts.ready;
+    const css = getComputedStyle(document.body);
+    return {
+      background: css.backgroundColor, text: css.color,
+      bodyFont: css.fontFamily, headingFont: getComputedStyle(document.querySelector('h1')).fontFamily,
+      accent: getComputedStyle(document.getElementById('result')).color,
+      inter: document.fonts.check('14px Inter'),
+      disket: document.fonts.check('14px "Disket Mono"'),
+      disketBold: document.fonts.check('700 14px "Disket Mono"'),
+      loaded: [...document.fonts].every(face => face.status === 'loaded'),
+      badge: document.querySelector('.badge').textContent
+    };
+  })()`);
+  assert.equal(theme.background, 'rgb(11, 11, 11)');
+  assert.equal(theme.text, 'rgb(250, 250, 229)');
+  assert.equal(theme.accent, 'rgb(255, 71, 0)');
+  assert.ok(theme.bodyFont.includes('Inter') && theme.headingFont.includes('Disket Mono'));
+  assert.ok(theme.inter && theme.disket && theme.disketBold && theme.loaded, 'Self-hosted fonts failed to load');
+  assert.equal(theme.badge, 'EXPERIMENTAL');
+  console.log('PASS theme colors, self-hosted fonts, and badge');
   for (const width of [1440, 390]) {
     await send('Emulation.setDeviceMetricsOverride', { width, height: 1000, deviceScaleFactor: 1, mobile: width < 500 });
     const overflow = await evaluate('document.documentElement.scrollWidth > innerWidth');
     assert.equal(overflow, false, `Horizontal overflow at ${width}px`);
     console.log(`PASS responsive layout ${width}px`);
+    if (process.env.SCREENSHOT_PREFIX) {
+      await evaluate('scrollTo(0, 0)');
+      const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
+      await writeFile(`${process.env.SCREENSHOT_PREFIX}-${width}.png`, Buffer.from(shot.data, 'base64'));
+    }
     if (width === 1440) {
       const rect = await evaluate('(() => { const c = document.getElementById("preview"); c.scrollIntoView({block:"center"}); const r = c.getBoundingClientRect(); return {x:r.x,y:r.y,width:r.width,height:r.height,naturalHeight:c.height}; })()');
       await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: rect.x + 1, y: rect.y + 1, button: 'left', clickCount: 1 });

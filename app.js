@@ -20,8 +20,9 @@ function paint() {
   if ($('binary').checked && mask) drawMask(preview, mask);
   else ctx.drawImage(current, 0, 0);
   ctx.lineWidth = Math.max(1, current.width / 700);
+  const theme = getComputedStyle(document.documentElement);
   for (const line of lines) for (const g of line) {
-    ctx.strokeStyle = g.uncertain || UNCONFIRMED.has(g.char) ? '#ed9b30' : '#63ac22';
+    ctx.strokeStyle = theme.getPropertyValue(g.uncertain || UNCONFIRMED.has(g.char) ? '--amber' : '--accent').trim();
     ctx.strokeRect(g.box.x, g.box.y, g.box.width, g.box.height);
   }
 }
@@ -43,7 +44,7 @@ function run() {
   if (!source || !templates.length) return;
   try {
     const height = Number($('glyphHeight').value), ratio = Number($('widthRatio').value);
-    if (!Number.isFinite(height) || height < 8 || height > 800 || !Number.isFinite(ratio) || ratio < .4 || ratio > 2) throw new Error('Set glyph height to 8–800 and width / height to 0.4–2.');
+    if (!Number.isFinite(height) || height < 0 || (height > 0 && height < 8) || height > 800 || !Number.isFinite(ratio) || ratio < .4 || ratio > 2) throw new Error('Set glyph height to 0 (auto) or 8–800 and width / height to 0.4–2.');
     const box = crop || { x: 0, y: 0, width: source.width, height: source.height };
     current = canvas(box.width, box.height);
     const c = current.getContext('2d', { willReadFrequently: true });
@@ -92,7 +93,7 @@ $('upload').addEventListener('change', async event => {
     const scale = Math.min(1, 1600 / Math.max(image.naturalWidth, image.naturalHeight));
     source = canvas(Math.max(1, Math.round(image.naturalWidth * scale)), Math.max(1, Math.round(image.naturalHeight * scale)));
     source.getContext('2d').drawImage(image, 0, 0, source.width, source.height);
-    crop = null; $('sourceLabel').textContent = file.name + (scale < 1 ? ' · resized to ≤1600 px' : ''); $('download').disabled = false; run();
+    crop = null; $('glyphHeight').value = 0; $('sourceLabel').textContent = file.name + (scale < 1 ? ' · resized to ≤1600 px' : ''); $('download').disabled = false; run();
   } catch (error) { if (version === loadVersion) status('Could not open image: ' + error.message); }
   finally { URL.revokeObjectURL(url); }
 });

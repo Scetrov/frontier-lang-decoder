@@ -2,9 +2,9 @@
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Frontier / Glyph decoder PoC</title><link rel="stylesheet" href="style.css"></head>
 <body>
-<header><a class="brand" href="./">F<span> / </span>FIELD SYSTEMS</a><span class="badge">EXPERIMENTAL · LOCAL ONLY</span></header>
+<header><a class="brand" href="./">F<span> / </span>FIELD SYSTEMS</a><span class="badge">EXPERIMENTAL</span></header>
 <main>
-  <div class="intro"><div><p class="eyebrow">EVE FRONTIER / LANGUAGE LAB</p><h1>Unknown symbols.<br><em>Readable signals.</em></h1><p class="lede">A glyph-substitution decoder, built from your reference chart.<br>Upload a text crop, inspect the matches, correct the uncertain.</p></div><div class="number">01<span>OPTICAL DECODER<br>PROOF OF CONCEPT</span></div></div>
+  <div class="intro"><div><p class="eyebrow">EVE FRONTIER / LANGUAGE LAB</p><h1>Unknown symbols.<br><em>Readable signals.</em></h1><p class="lede">A glyph-substitution decoder, built from your reference chart.<br> Upload a text crop, inspect the matches, correct the uncertain.</p></div><div class="number">01<span>OPTICAL DECODER<br>PROOF OF CONCEPT</span></div></div>
   <p class="notice">Designed for upright, square, evenly sized glyphs on a plain background—not arbitrary-scene OCR. No real-world samples validated yet. N and 9 are unconfirmed in the supplied chart.</p>
   <div class="layout">
     <section class="panel controls"><h2><span>01</span> Input signal</h2>
@@ -14,9 +14,9 @@
       <h3>Recognition controls</h3>
       <label>Ink polarity<select id="polarity"><option value="auto">Auto (image border)</option><option value="dark">Dark glyphs / light background</option><option value="light">Light glyphs / dark background</option></select></label>
       <label>Threshold <output id="thresholdValue">150</output><input id="threshold" type="range" min="10" max="245" value="150"></label>
-      <label>Approx. glyph height (px)<input id="glyphHeight" type="number" min="8" max="800" value="64"></label>
-      <p class="hint">Used to join disconnected strokes into lines. Leave generous spacing between lines. Match this to glyph height in the processed preview.</p>
-      <label>Glyph width / height<input id="widthRatio" type="number" min="0.4" max="2" step="0.05" value="1"></label>
+      <label>Line grouping height (0 = auto)<input id="glyphHeight" type="number" min="0" max="800" value="0"></label>
+      <p class="hint">Uploads use automatic line sizing, including mixed-size text. For detached strokes that split into separate lines, set the glyph height in processed-image pixels. Reset to 0 for auto.</p>
+      <label>Glyph width adjustment<input id="widthRatio" type="number" min="0.4" max="2" step="0.05" value="1"></label>
       <label>Minimum match <output id="minScoreValue">72%</output><input id="minScore" type="range" min="40" max="98" value="72"></label>
       <label class="check"><input id="binary" type="checkbox"> Show thresholded image</label>
       <details open><summary>Synthetic test bench</summary><label>Generate a known signal<textarea id="demoText" rows="3" maxlength="160" spellcheck="false">EVE FRONTIER

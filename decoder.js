@@ -69,35 +69,60 @@ function runs(values) {
   return result;
 }
 
-export function decode(mask, templates, { glyphHeight = 64, widthRatio = 1, minScore = .72 } = {}) {
+function columnsIn(mask, y, end) {
+  const columns = new Uint32Array(mask.width);
+  for (let yy = y; yy < end; yy++) for (let x = 0; x < mask.width; x++) columns[x] += mask.data[yy * mask.width + x];
+  return columns;
+}
+
+function median(values) {
+  values.sort((a, b) => a - b);
+  return values[Math.floor(values.length / 2)];
+}
+
+export function decode(mask, templates, { glyphHeight = 0, widthRatio = 1, minScore = .72 } = {}) {
   const rows = new Uint32Array(mask.height);
   for (let y = 0; y < mask.height; y++) for (let x = 0; x < mask.width; x++) rows[y] += mask.data[y * mask.width + x];
   const lines = [];
   for (const run of runs(rows)) {
     const prev = lines.at(-1);
-    if (prev && run[0] - prev[1] < glyphHeight * .7) prev[1] = run[1];
-    else lines.push([...run]);
+    const spans = runs(columnsIn(mask, run[0], run[1])).map(([a, b]) => b - a);
+    const scale = Math.max(run[1] - run[0], median(spans) || 0);
+    const nominal = glyphHeight || Math.max(scale, prev?.[2] || 0);
+    // Automatic mode must not merge complete lines of different font sizes.
+    // Wide horizontal strokes can still join detached bands within one glyph.
+    if (prev && run[0] - prev[1] < nominal * .7 && (glyphHeight || run[1] - prev[0] <= nominal * 1.25)) {
+      prev[1] = run[1]; prev[2] = nominal;
+    } else lines.push([...run, scale]);
   }
   const output = []; let count = 0;
   for (const [y, end] of lines) {
     const height = end - y;
     if (height < 4) continue;
-    const columns = new Uint32Array(mask.width);
-    for (let yy = y; yy < end; yy++) for (let x = 0; x < mask.width; x++) columns[x] += mask.data[yy * mask.width + x];
-    const width = Math.max(2, Math.round(height * widthRatio));
+    const columns = columnsIn(mask, y, end);
+    // Rasterized cells can be 28px wide but only 27px tall. Using height alone
+    // leaves a one-column tail and turns it into a spurious extra character.
+    const fullSpans = runs(columns).map(([a, b]) => b - a).filter(w => w >= height * .7 && w <= height * 1.3);
+    const width = Math.max(2, Math.round((median(fullSpans) || height) * widthRatio));
     const glyphs = []; let cursor = 0, previousEnd = null;
     while (cursor < mask.width) {
       while (cursor < mask.width && !columns[cursor]) cursor++;
       if (cursor >= mask.width) break;
       if (++count > 500) throw new Error('Too many regions. Crop to a smaller, cleaner text area.');
-      const box = { x: cursor, y, width: Math.min(width, mask.width - cursor), height };
+      let endX = Math.min(cursor + width, mask.width);
+      // Include a small rasterization overhang, but never consume a long
+      // touching region as if it were a single character.
+      let tail = endX;
+      while (tail < mask.width && columns[tail] && tail - endX <= width * .15) tail++;
+      if (tail < mask.width && !columns[tail] && tail - endX <= width * .15) endX = tail;
+      const box = { x: cursor, y, width: endX - cursor, height };
       const tight = bounds(mask, box);
       const candidates = rank(normalize(mask, tight), templates).slice(0, 3);
       const best = candidates[0];
       const uncertain = best.score < minScore || best.score - (candidates[1]?.score || 0) < .035;
       glyphs.push({ box, candidates, char: uncertain ? '?' : best.char, uncertain,
         spaceBefore: previousEnd !== null && cursor - previousEnd > width * .55 });
-      previousEnd = cursor + width; cursor += width;
+      previousEnd = endX; cursor = endX;
     }
     if (glyphs.length) output.push(glyphs);
   }
