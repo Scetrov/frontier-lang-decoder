@@ -53,8 +53,7 @@ header, footer {
 .brand span { color: var(--accent); }
 .badge { border: 1px solid var(--line); padding: 7px 11px; color: var(--accent); font-size: 10px; }
 main { max-width: 1450px; padding: 28px 40px 40px; margin: auto; }
-.lede { line-height: 1.55; color: var(--muted); font-size: 13px; margin: 0 0 14px; }
-.notice { font-size: 12px; line-height: 1.55; border-left: 2px solid var(--amber); padding: 10px 16px; background: #201a13; color: var(--text); margin: 0 0 22px; }
+.notice { font-size: 11px; line-height: 1.55; border-left: 2px solid var(--amber); padding: 9px 12px; background: #201a13; color: var(--text); margin: 0 0 16px; }
 .layout { display: grid; grid-template-columns: 310px minmax(0, 1fr); gap: 20px; align-items: start; }
 .panel { background: var(--panel); border: 1px solid var(--line); padding: 22px; }
 .workspace { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
@@ -130,7 +129,7 @@ details.panel { margin-top: 0; }
 .letter canvas { display: block; width: 40px; height: 40px; margin: 0 auto 8px; background: white; }
 .letter.unconfirmed { color: var(--amber); }
 a { color: var(--accent); }
-footer { border-top: 1px solid var(--line); border-bottom: 0; margin-top: 20px; color: var(--muted); font-size: 9px; }
+footer { border-top: 1px solid var(--line); border-bottom: 0; margin-top: 20px; color: var(--muted); font-size: 9px; flex-wrap: wrap; gap: 12px; }
 @media (max-width: 800px) {
   main { padding: 20px 16px 28px; }
   header, footer { padding: 16px; }

@@ -4,10 +4,9 @@
 <body>
 <header><a class="brand" href="./">F<span> / </span>FIELD SYSTEMS</a><span class="badge">EXPERIMENTAL</span></header>
 <main>
-  <p class="lede">A glyph-substitution decoder built from your reference chart. Upload a text crop, inspect the matches, and correct the uncertain.</p>
-  <p class="notice">Designed for upright, square, evenly sized glyphs on a plain background—not arbitrary-scene OCR. No real-world samples validated yet. N and 9 are unconfirmed in the supplied chart.</p>
   <div class="layout">
     <section class="panel controls"><h2><span>01</span> Input signal</h2>
+      <p class="notice">Designed for upright, square, evenly sized glyphs on a plain background—not arbitrary-scene OCR. No real-world samples validated yet. N and 9 are unconfirmed in the supplied chart.</p>
       <label class="upload" for="upload"><strong>Open or drop an image ↗</strong><span>PNG, JPEG or WebP · up to 12 MB<br>Processed only in this browser</span><input id="upload" type="file" accept="image/png,image/jpeg,image/webp"></label>
       <p class="hint">Crop tightly to text first, or drag a rectangle on the preview. Click “Reset crop” to undo.</p>
       <div class="row"><button id="resetCrop" type="button">Reset crop</button><button id="decode" class="primary" type="button" disabled>Decode ↗</button></div>
@@ -28,6 +27,6 @@ SIGNAL 2048</textarea></label><label class="check"><input id="invert" type="chec
       <details class="panel"><summary>Reference alphabet · 36 glyphs</summary><p class="hint">Extracted directly from <a href="image.png" target="_blank" rel="noopener">your supplied mapping</a>. Amber entries are not confirmed by the chart.</p><div id="alphabet" class="alphabet"></div></details>
     </div>
   </div>
-</main><footer>UNOFFICIAL FAN EXPERIMENT <span>NO UPLOADS · NO API KEYS · NO TELEMETRY</span></footer>
+</main><footer><span>UNOFFICIAL FAN EXPERIMENT · CHART BY SOLINARIA AND THE MEMBERS OF #LORE-CHAT</span><span>NO UPLOADS · NO API KEYS · NO TELEMETRY</span></footer>
 <script type="module" src="app.js"></script>
 </body></html>
