@@ -81,8 +81,8 @@ function demo() {
   crop = null; $('glyphHeight').value = size; $('widthRatio').value = 1; $('polarity').value = 'auto';
   $('sourceLabel').textContent = 'SYNTHETIC · SAME-SOURCE TEST'; $('download').disabled = false; run();
 }
-$('upload').addEventListener('change', async event => {
-  const file = event.target.files[0]; if (!file) return;
+async function loadImageFile(file) {
+  if (!file) return;
   const version = ++loadVersion;
   if (file.size > 12 * 1024 * 1024 || !['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) { status('Choose a PNG, JPEG or WebP smaller than 12 MB.'); return; }
   const url = URL.createObjectURL(file);
@@ -96,7 +96,12 @@ $('upload').addEventListener('change', async event => {
     crop = null; $('glyphHeight').value = 0; $('sourceLabel').textContent = file.name + (scale < 1 ? ' · resized to ≤1600 px' : ''); $('download').disabled = false; run();
   } catch (error) { if (version === loadVersion) status('Could not open image: ' + error.message); }
   finally { URL.revokeObjectURL(url); }
-});
+}
+$('upload').addEventListener('change', event => loadImageFile(event.target.files[0]));
+const dropzone = document.querySelector('.upload');
+dropzone.addEventListener('dragover', event => { event.preventDefault(); dropzone.classList.add('dragover'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+dropzone.addEventListener('drop', event => { event.preventDefault(); dropzone.classList.remove('dragover'); loadImageFile(event.dataTransfer?.files[0]); });
 $('decode').addEventListener('click', run);
 $('demo').addEventListener('click', demo);
 $('resetCrop').addEventListener('click', () => { crop = null; run(); });

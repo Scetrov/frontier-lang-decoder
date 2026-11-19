@@ -32,7 +32,7 @@ try {
     const css = getComputedStyle(document.body);
     return {
       background: css.backgroundColor, text: css.color,
-      bodyFont: css.fontFamily, headingFont: getComputedStyle(document.querySelector('h1')).fontFamily,
+      bodyFont: css.fontFamily, headingFont: getComputedStyle(document.querySelector('h2')).fontFamily,
       accent: getComputedStyle(document.getElementById('result')).color,
       inter: document.fonts.check('14px Inter'),
       disket: document.fonts.check('14px "Disket Mono"'),
